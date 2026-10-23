@@ -92,21 +92,34 @@ app.get('/auth/google', (q, s) => {
 });
 
 app.get('/auth/google/callback', async (q, s) => {
+  let stage = 'callback';
   try {
-    if (q.query.error) return s.redirect(googleRedirect('cancelled'));
+    if (q.query.error) {
+      const code = q.query.error === 'access_denied' ? 'cancelled' : 'google-denied';
+      console.warn('Google sign-in was not authorized:', code);
+      return s.redirect(googleRedirect(code));
+    }
     const state = typeof q.query.state === 'string' ? q.query.state : '';
+    stage = 'state-validation';
     const storedState = db.prepare('SELECT state FROM oauth_states WHERE state=? AND expires_at>?')
       .get(state, Math.floor(Date.now() / 1000));
-    if (!storedState) return s.redirect(googleRedirect('invalid-state'));
+    if (!storedState) {
+      console.warn('Google sign-in rejected: state missing, expired, or already used.');
+      return s.redirect(googleRedirect('invalid-state'));
+    }
     db.prepare('DELETE FROM oauth_states WHERE state=?').run(state);
-    if (!googleClient || typeof q.query.code !== 'string') return s.redirect(googleRedirect('failed'));
+    if (!googleClient || typeof q.query.code !== 'string')
+      return s.redirect(googleRedirect('token-exchange'));
 
+    stage = 'token-exchange';
     const { tokens } = await googleClient.getToken(q.query.code);
+    stage = 'profile-verification';
     const ticket = await googleClient.verifyIdToken({ idToken: tokens.id_token, audience: GOOGLE_CLIENT_ID });
     const profile = ticket.getPayload();
     if (!profile?.sub || !profile.email || profile.email_verified !== true)
       return s.redirect(googleRedirect('unverified-email'));
 
+    stage = 'account-setup';
     const u = db.transaction(() => {
       let user = db.prepare('SELECT * FROM usuarios WHERE google_sub=?').get(profile.sub);
       if (user) return user;
@@ -128,12 +141,22 @@ app.get('/auth/google/callback', async (q, s) => {
       return db.prepare('SELECT * FROM usuarios WHERE id=?').get(created.lastInsertRowid);
     })();
 
+    stage = 'session-creation';
     const session = sessionFor(u);
     s.redirect(`/#token=${encodeURIComponent(session.token)}&rol=${encodeURIComponent(session.rol)}&nombre=${encodeURIComponent(session.nombre)}`);
   } catch (e) {
     if (e instanceof Error && e.message === 'account-conflict') return s.redirect(googleRedirect('account-conflict'));
-    console.error('Google sign-in failed:', e instanceof Error ? e.message : 'Unknown error');
-    return s.redirect(googleRedirect('failed'));
+    const errorResponse = e && typeof e === 'object' && 'response' in e ? e.response : null;
+    const providerCode = errorResponse && typeof errorResponse === 'object' && 'data' in errorResponse &&
+      errorResponse.data && typeof errorResponse.data === 'object' && 'error' in errorResponse.data
+      ? errorResponse.data.error : null;
+    const rawCode = typeof providerCode === 'string' ? providerCode
+      : e && typeof e === 'object' && 'code' in e && typeof e.code === 'string' ? e.code : '';
+    const code = /^[a-zA-Z0-9_-]{1,80}$/.test(rawCode) ? rawCode : 'unknown';
+    const status = errorResponse && typeof errorResponse === 'object' && 'status' in errorResponse
+      && Number.isInteger(errorResponse.status) ? errorResponse.status : null;
+    console.error('Google sign-in failed:', JSON.stringify({ stage, code, status }));
+    return s.redirect(`${googleRedirect('failed')}&stage=${encodeURIComponent(stage)}&reason=${encodeURIComponent(code)}`);
   }
 });
 

@@ -332,12 +332,30 @@ if (googleError) {
   const messages = {
     'not-configured': 'El acceso con Google aún no está configurado en el servidor.',
     cancelled: 'Se canceló el acceso con Google.',
+    'google-denied': 'Google rechazó la solicitud. Revisa los registros de OAuth en Google Cloud Console.',
     'invalid-state': 'La sesión de Google expiró o no es válida. Inténtalo de nuevo.',
     'unverified-email': 'Google no confirmó un correo verificado para esta cuenta.',
     'account-conflict': 'Ese correo ya está vinculado a otra cuenta de Google.',
     failed: 'No se pudo iniciar sesión con Google. Inténtalo de nuevo.'
   };
-  msg(messages[googleError] || messages.failed, false);
+  const stageMessages = {
+    'token-exchange': 'Google no aceptó el código de acceso. Confirma que el ID y el secreto pertenecen al mismo cliente OAuth.',
+    'profile-verification': 'No se pudo validar la respuesta de Google. Revisa el cliente OAuth y sus permisos de email y perfil.',
+    'account-setup': 'Google autenticó la cuenta, pero el servidor no pudo crear o vincular el usuario.',
+    'session-creation': 'La cuenta se validó, pero el servidor no pudo crear la sesión.'
+  };
+  const reasonMessages = {
+    invalid_client: 'Google indica que el ID o el secreto del cliente no son válidos.',
+    invalid_grant: 'Google rechazó el código. Revisa que la URI de retorno coincida exactamente y vuelve a iniciar el acceso.',
+    unauthorized_client: 'El cliente OAuth no está autorizado para este tipo de acceso.',
+    redirect_uri_mismatch: 'La URI de retorno no coincide con la registrada en Google Cloud.'
+  };
+  const stage = new URLSearchParams(location.search).get('stage');
+  const reason = new URLSearchParams(location.search).get('reason');
+  const errorMessage = messages[googleError] || (stageMessages[stage]
+    ? `${stageMessages[stage]} ${reasonMessages[reason] || 'Consulta los registros del servicio en Render para ver la etapa y el código del error.'}`
+    : messages.failed);
+  msg(errorMessage, false);
   history.replaceState(null, '', location.pathname);
 }
 </script></body></html>
