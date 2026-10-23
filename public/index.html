@@ -165,7 +165,10 @@ async function comprobarGoogle() {
     TIME_ZONE = config.timeZone || TIME_ZONE;
     link.setAttribute('aria-disabled', config.googleEnabled ? 'false' : 'true');
     link.tabIndex = config.googleEnabled ? 0 : -1;
-    status.textContent = config.googleEnabled ? '' : 'El administrador debe configurar Google OAuth en el servidor.';
+    status.textContent = config.googleEnabled ? ''
+      : `Google OAuth no está listo. Revisa ${config.googleConfigMissing.join(', ') || 'la configuración del servidor'}.${
+        config.googleRedirectUri ? ` URI autorizada en Google: ${config.googleRedirectUri}` : ''
+      }`;
     status.hidden = config.googleEnabled;
   } catch (x) {
     link.setAttribute('aria-disabled', 'true'); link.tabIndex = -1;

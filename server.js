@@ -6,7 +6,15 @@ const SECRET = process.env.JWT_SECRET || 'cambia-este-secreto';
 const ADMIN_CODE = process.env.ADMIN_CODE || 'PADDLE2025';
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI;
+const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI ||
+  (process.env.RENDER_EXTERNAL_URL
+    ? new URL('/auth/google/callback', process.env.RENDER_EXTERNAL_URL).toString()
+    : undefined);
+const googleConfigMissing = [
+  !GOOGLE_CLIENT_ID && 'GOOGLE_CLIENT_ID',
+  !GOOGLE_CLIENT_SECRET && 'GOOGLE_CLIENT_SECRET',
+  !GOOGLE_REDIRECT_URI && 'GOOGLE_REDIRECT_URI'
+].filter(Boolean);
 const googleEnabled = !!(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET && GOOGLE_REDIRECT_URI);
 const googleClient = googleEnabled
   ? new OAuth2Client(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI) : null;
@@ -62,7 +70,12 @@ const auth = (q, s, n) => {
 };
 const admin = (q, s, n) => q.u.rol === 'admin' ? n() : s.status(403).json({ error: 'Solo administradores' });
 
-app.get('/api/config', (q, s) => s.json({ googleEnabled, timeZone: TIME_ZONE }));
+app.get('/api/config', (q, s) => s.json({
+  googleEnabled,
+  googleRedirectUri: GOOGLE_REDIRECT_URI || null,
+  googleConfigMissing,
+  timeZone: TIME_ZONE
+}));
 
 app.get('/auth/google', (q, s) => {
   if (!googleClient) return s.redirect(googleRedirect('not-configured'));
