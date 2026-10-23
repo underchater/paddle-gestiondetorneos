@@ -3,12 +3,21 @@
   "version": "1.0.0",
   "description": "Sistema de Gestión de Torneos de Paddle",
   "main": "server.js",
-  "scripts": { "start": "node server.js" },
-  "engines": { "node": ">=18" },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
     "bcryptjs": "^2.4.3",
-    "better-sqlite3": "^11.3.0",
+    "better-sqlite3": "^12.4.1",
     "express": "^4.19.2",
-    "jsonwebtoken": "^9.0.2"
+    "google-auth-library": "^11.3.1",
+    "jsonwebtoken": "^9.0.2",
+    "nodemailer": "^10.2.1"
+  },
+  "allowScripts": {
+    "better-sqlite3@12.11.1": true
   }
 }

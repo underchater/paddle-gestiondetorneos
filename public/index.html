@@ -1,32 +1,129 @@
 <!DOCTYPE html>
 <html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Torneos de Paddle</title>
+<meta name="theme-color" content="#101d49">
+<meta name="description" content="Torneos, equipos y partidos de pádel de El Club Espinal.">
+<title>El Club Espinal — Torneos de pádel</title>
 <style>
-:root{--bg:#f3f6f4;--c:#fff;--t:#16241c;--p:#1b7f4b;--b:#d6dfd9}
-@media(prefers-color-scheme:dark){:root{--bg:#121a15;--c:#1b2620;--t:#e8f0ea;--p:#3fbf79;--b:#2c3b32}}
-*{box-sizing:border-box}body{margin:0;font-family:system-ui,sans-serif;background:var(--bg);color:var(--t)}
-header{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;justify-content:space-between;padding:.8rem 1rem;background:var(--p);color:#fff}
-header h1{margin:0;font-size:1.2rem}header button{background:#fff;color:var(--p)}
-nav{display:flex;flex-wrap:wrap;gap:.4rem;padding:.6rem 1rem}
-nav button.on{background:var(--p);color:#fff}nav button{background:var(--c);color:var(--t);border:1px solid var(--b)}
-main,#auth{max-width:900px;margin:0 auto;padding:1rem}
-#auth{max-width:420px}
-form{display:flex;flex-wrap:wrap;gap:.5rem;margin:.6rem 0}
-input,select,button{padding:.55rem .7rem;border-radius:8px;border:1px solid var(--b);font:inherit;background:var(--c);color:var(--t);flex:1 1 150px}
-button{background:var(--p);color:#fff;border:0;cursor:pointer;flex:0 0 auto}
-.card{background:var(--c);border:1px solid var(--b);border-radius:10px;padding:.8rem;margin:.5rem 0}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:.6rem}
-table{width:100%;border-collapse:collapse;background:var(--c)}th,td{padding:.5rem;border-bottom:1px solid var(--b);text-align:left}
-#msg{margin:.5rem 1rem;padding:0 .2rem;font-weight:600}.ok{color:var(--p)}.bad{color:#d33}
-.wrap{overflow-x:auto}
+:root{color-scheme:light;--bg:#f4f6fb;--surface:#fff;--surface-soft:#f8f9fc;--text:#172344;--muted:#68738d;--primary:#142653;--primary-dark:#0c193c;--accent:#d7ed72;--border:#dfe4ef;--danger:#b5473c;--shadow:0 20px 55px #10204a12}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 82% 5%,#e5eaf5 0,transparent 35%),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input,select{font:inherit}
+button{border:0;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid #9aadd9;outline-offset:2px}
+#app{min-height:100vh}
+.auth-shell{width:min(1120px,100%);min-height:100vh;margin:auto;padding:clamp(1.5rem,5vw,4.5rem) clamp(1rem,4vw,2.5rem);display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,.86fr);gap:clamp(2rem,7vw,6rem);align-items:center}
+.auth-intro{padding:1rem 0}
+.brand-logo{display:block;width:min(250px,72vw);height:auto;aspect-ratio:2.12;object-fit:contain;transition:transform .22s ease,filter .22s ease}
+.auth-intro .brand-logo:hover{transform:translateY(-3px) scale(1.015);filter:drop-shadow(0 8px 12px #10204a18)}
+.brand-name{display:flex;align-items:center;gap:.9rem;font-size:.82rem;font-weight:750;letter-spacing:.01em}
+.eyebrow{margin:2rem 0 .85rem;color:var(--primary);font-size:.72rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+.auth-intro h1{max-width:12ch;margin:0;font-size:clamp(2.5rem,5vw,4.25rem);line-height:1.02;letter-spacing:-.055em}
+.auth-intro h1 em{color:var(--primary);font-style:normal}
+.auth-copy{max-width:31rem;margin:1.1rem 0 0;color:var(--muted);font-size:1.02rem;line-height:1.7}
+.auth-note{display:flex;align-items:center;gap:.65rem;margin-top:2rem;color:var(--muted);font-size:.84rem}
+.auth-note span{width:.52rem;height:.52rem;border-radius:50%;background:var(--accent);box-shadow:0 0 0 5px #d7ed7233;animation:pulse-ring 2.4s ease-out infinite}
+.auth-panels{width:100%;max-width:465px;justify-self:end;animation:fade-rise .48s ease both}
+.card{min-width:0;padding:clamp(1.2rem,3vw,1.8rem);border:1px solid var(--border);border-radius:18px;background:var(--surface);box-shadow:var(--shadow)}
+.card h2{margin:0 0 .35rem;font-size:1.18rem;letter-spacing:-.025em}
+.card-description{margin:0 0 1.1rem;color:var(--muted);font-size:.88rem;line-height:1.5}
+.field{display:grid;gap:.4rem;min-width:0}
+.field label{color:var(--muted);font-size:.8rem;font-weight:650}
+.field input,.field select,.control,form input,form select{width:100%;min-width:0;min-height:2.85rem;padding:.72rem .8rem;border:1px solid var(--border);border-radius:10px;background:var(--surface-soft);color:var(--text);transition:border-color .18s,background .18s,box-shadow .18s}
+.field input:focus,.field select:focus,form input:focus,form select:focus{border-color:#8a9bc2;background:#fff;box-shadow:0 0 0 3px #14265312}
+input::placeholder{color:#91a097}
+form{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));align-items:end;gap:.85rem;margin:1rem 0}
+button.primary,.primary,form button{display:inline-flex;min-height:2.85rem;align-items:center;justify-content:center;padding:.72rem 1.15rem;border-radius:10px;background:var(--primary);color:#fff;font-weight:700;transition:background .18s,transform .18s,box-shadow .18s}
+button.primary:hover,.primary:hover,form button:hover{transform:translateY(-1px);background:var(--primary-dark);box-shadow:0 6px 14px #10204a20}
+button.primary:active,.primary:active,form button:active{transform:translateY(0) scale(.985)}
+form button:disabled{opacity:.55;cursor:not-allowed}
+.auth-card h2{font-size:1.45rem}
+.auth-card.auth-enter{animation:fade-rise .24s ease both}
+.auth-card form{grid-template-columns:1fr;gap:.85rem;margin:1.25rem 0 0}
+.auth-card form button{width:100%;margin-top:.2rem}
+.auth-footer{margin:1.2rem 0 0;color:var(--muted);font-size:.86rem;text-align:center}
+.text-link{padding:.15rem .2rem;background:transparent;color:var(--primary);font-weight:750}
+.text-link{transition:color .18s,transform .18s}
+.text-link:hover{color:#35528b;text-decoration:underline}
+.text-link:active{transform:scale(.97)}
+.auth-divider{display:flex;align-items:center;gap:.7rem;margin:.9rem 0;color:var(--muted);font-size:.78rem}
+.auth-divider:before,.auth-divider:after{height:1px;flex:1;background:var(--border);content:""}
+.google-button{display:flex;min-height:2.85rem;align-items:center;justify-content:center;gap:.7rem;padding:.65rem 1rem;border:1px solid var(--border);border-radius:10px;background:#fff;color:var(--text);font-weight:700;text-decoration:none}
+.google-button{transition:background .18s,border-color .18s,transform .18s}
+.google-button:hover{transform:translateY(-1px);background:var(--surface-soft);border-color:#bbc6df}
+.google-button[aria-disabled="true"]{opacity:.55;cursor:not-allowed}
+.google-mark{color:#4285f4;font-size:1.15rem;font-weight:850}
+.provider-status{margin:.6rem 0 0;color:var(--muted);font-size:.78rem;line-height:1.5}
+.app-header{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.7rem max(1rem,calc((100vw - 1120px)/2));border-bottom:1px solid #ffffff24;background:var(--primary-dark);color:#fff}
+.app-header .brand-logo{width:142px;flex:none;padding:4px 8px;border-radius:5px;background:#fff}
+.header-right{display:flex;align-items:center;justify-content:flex-end;gap:.8rem}
+.user-pill{padding:.48rem .75rem;border:1px solid #ffffff30;border-radius:999px;background:#ffffff12;color:#e7efe8;font-size:.84rem}
+button.secondary{min-height:2.55rem;padding:.58rem .9rem;border:1px solid #ffffff45;border-radius:10px;background:transparent;color:#fff;font-weight:650}
+button.secondary:hover{background:#ffffff16}
+.nav-wrap{border-bottom:1px solid var(--border);background:#ffffffd9}
+nav{display:flex;width:min(1120px,100%);gap:.35rem;margin:auto;padding:.65rem 1rem;overflow-x:auto}
+.nav-wrap nav{scrollbar-width:none}
+.nav-wrap nav::-webkit-scrollbar{display:none}
+nav button{flex:none;padding:.62rem .88rem;border-radius:9px;background:transparent;color:var(--muted);font-size:.9rem;font-weight:650;white-space:nowrap;transition:background .18s,color .18s,transform .18s}
+nav button:hover{background:var(--surface-soft);color:var(--text)}
+nav button:active{transform:scale(.97)}
+nav button.on{background:#e9edf7;color:var(--primary-dark)}
+main{width:min(1120px,100%);margin:auto;padding:clamp(1.25rem,4vw,2.75rem) 1rem 4rem}
+.page-title{margin:0 0 .4rem;font-size:clamp(1.65rem,3vw,2.2rem);letter-spacing:-.05em}
+.page-subtitle{margin:0;color:var(--muted);line-height:1.55}
+.page-heading{margin-bottom:1.4rem}
+.section-label{margin:1.5rem 0 .7rem;color:var(--muted);font-size:.75rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:.85rem}
+.grid .card{margin:0;transition:transform .2s,border-color .2s,box-shadow .2s}
+.grid .card:hover{transform:translateY(-3px);border-color:#c7d0e4;box-shadow:0 16px 35px #10204a12}
+.tournament-card{position:relative;overflow:hidden}
+.tournament-card:before{position:absolute;inset:0 auto 0 0;width:4px;background:var(--accent);content:""}
+.tournament-card strong{display:block;margin-bottom:.75rem;font-size:1.08rem}
+.meta{color:var(--muted);font-size:.9rem;line-height:1.6}
+.empty-state{padding:1.5rem;border:1px dashed #cbd8cb;border-radius:14px;background:#ffffff8a;color:var(--muted);text-align:center;line-height:1.6}
+.message{margin:.75rem auto;width:min(1120px,calc(100% - 2rem));font-size:.9rem;font-weight:650}
+#auth .message{width:100%;margin:.4rem 0;padding:0}
+.ok{color:var(--primary)}.bad{color:var(--danger)}.warn{color:#8a6100}
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:14px;background:var(--surface)}
+table{width:100%;border-collapse:collapse;text-align:left}
+th,td{padding:.85rem 1rem;border-bottom:1px solid var(--border);white-space:nowrap}
+th{background:var(--surface-soft);color:var(--muted);font-size:.75rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:#f8faf7}
+.match-card{margin:.75rem 0;transition:border-color .2s,box-shadow .2s}
+.match-card:focus-within,.form-panel:focus-within{border-color:#b7c4df;box-shadow:0 12px 30px #10204a10}
+.match-vs{font-weight:750}
+.match-info{margin-top:.4rem;color:var(--muted);font-size:.9rem}
+.notification-card{transition:transform .2s,border-color .2s,box-shadow .2s}
+.notification-card:hover{transform:translateY(-2px);box-shadow:0 14px 30px #10204a10}
+.notification-card.unread{border-color:#c6d1e8;background:#f8faff}
+.notification-card p{margin:.6rem 0;color:var(--muted);line-height:1.6}
+.notification-card time{color:var(--muted);font-size:.8rem}
+.notification-card .primary{margin-top:.8rem}
+.match-card form{margin-top:1rem}
+.match-card form .primary{width:100%}
+.form-panel{margin:1rem 0 1.3rem;padding:1.1rem;border:1px solid var(--border);border-radius:16px;background:var(--surface);transition:border-color .2s,box-shadow .2s}
+.form-panel .section-label{margin:.1rem 0 .9rem}
+#main>select{min-width:min(100%,280px);min-height:2.85rem;padding:.7rem .85rem;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text)}
+#sub{margin-top:1rem}
+@media(max-width:760px){.auth-shell{grid-template-columns:1fr;gap:1.5rem;align-content:center;padding-top:2rem;padding-bottom:2rem}.auth-intro{padding:0}.brand-logo{width:min(218px,65vw)}.eyebrow{margin:1.2rem 0 .65rem}.auth-intro h1{max-width:16ch;font-size:clamp(2.25rem,9vw,3.3rem)}.auth-copy{margin-top:.65rem;font-size:.96rem}.auth-note{margin-top:.9rem}.auth-panels{justify-self:center}.app-header{position:static;padding:.7rem 1rem}.user-pill{display:none}}
+@media(max-width:520px){.app-header .brand-logo{width:118px}.header-right{gap:.45rem}button.secondary{min-height:2.35rem;padding:.5rem .7rem;font-size:.85rem}nav{padding:.55rem .7rem}main{padding-top:1.25rem}form{grid-template-columns:1fr}.card{border-radius:16px}th,td{padding:.7rem .75rem}}
+@keyframes fade-rise{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse-ring{0%,100%{box-shadow:0 0 0 4px #d7ed7220}50%{box-shadow:0 0 0 7px #d7ed7240}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
 </style></head>
 <body><div id="app"></div>
 <script>
-let T = localStorage.getItem('t'), R = localStorage.getItem('r'), N = localStorage.getItem('n'), cur = 'torneos';
+const oauth = new URLSearchParams(location.hash.slice(1));
+let T = oauth.get('token') || localStorage.getItem('t'), R = oauth.get('rol') || localStorage.getItem('r'), N = oauth.get('nombre') || localStorage.getItem('n'), cur = 'torneos', authMode = 'login';
+if (oauth.has('token')) {
+  localStorage.setItem('t', T); localStorage.setItem('r', R); localStorage.setItem('n', N);
+  history.replaceState(null, '', location.pathname + location.search);
+}
 const $ = s => document.querySelector(s);
 const e = s => String(s ?? '').replace(/[&<>"']/g, c => '&#' + c.charCodeAt(0) + ';');
-const msg = (t, ok) => { const m = $('#msg'); if (m) { m.textContent = t; m.className = ok ? 'ok' : 'bad'; } };
+let TIME_ZONE = 'America/Bogota';
+const msg = (t, ok) => { const m = $('#msg'); if (m) { m.textContent = t; m.className = ok === 'warn' ? 'warn' : ok ? 'ok' : 'bad'; } };
 
 async function api(u, m = 'GET', b) {
   const r = await fetch('/api/' + u, { method: m, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + T }, body: b && JSON.stringify(b) });
@@ -35,7 +132,7 @@ async function api(u, m = 'GET', b) {
   if (!r.ok) throw new Error(d.error);
   return d;
 }
-function salir() { localStorage.clear(); T = R = N = null; render(); }   // R10: cerrar sesión
+function salir() { localStorage.clear(); T = R = N = null; authMode = 'login'; render(); }   // R10: cerrar sesión
 
 async function login(ev) {
   ev.preventDefault();
@@ -51,9 +148,29 @@ async function reg(ev) {
   ev.preventDefault();
   try {
     const r = await api('registro', 'POST', Object.fromEntries(new FormData(ev.target)));
-    ev.target.reset(); msg(r.ok + '. Ahora inicia sesión.', 1);
+    ev.target.reset(); mostrarAuth('login'); msg(r.ok + '. Ya puedes iniciar sesión.', 1);
   } catch (x) { msg(x.message); }
   return false;
+}
+async function marcarLeida(id) {
+  try { await api(`notificaciones/${id}/leida`, 'PUT'); await tab('avisos'); }
+  catch (x) { msg(x.message); }
+}
+async function comprobarGoogle() {
+  const link = $('#google-login'), status = $('#google-status');
+  try {
+    const r = await fetch('/api/config');
+    if (!r.ok) throw new Error('No se pudo consultar la configuración de acceso.');
+    const config = await r.json();
+    TIME_ZONE = config.timeZone || TIME_ZONE;
+    link.setAttribute('aria-disabled', config.googleEnabled ? 'false' : 'true');
+    link.tabIndex = config.googleEnabled ? 0 : -1;
+    status.textContent = config.googleEnabled ? '' : 'El administrador debe configurar Google OAuth en el servidor.';
+    status.hidden = config.googleEnabled;
+  } catch (x) {
+    link.setAttribute('aria-disabled', 'true'); link.tabIndex = -1;
+    status.textContent = x.message; status.hidden = false;
+  }
 }
 // envío genérico de formularios del panel
 async function f(ev, ruta, m = 'POST') {
@@ -61,28 +178,73 @@ async function f(ev, ruta, m = 'POST') {
   try {
     const r = await api(ruta, m, Object.fromEntries(new FormData(ev.target)));
     cur === 'partidos' || cur === 'tabla' ? await cargar() : await tab(cur);
-    msg(r.ok, 1);
+    msg(r.warning ? `${r.ok} ${r.warning}` : r.ok, r.warning ? 'warn' : true);
   } catch (x) { msg(x.message); }
   return false;
 }
 
-const authHtml = `<div id="auth"><h1>🎾 Torneos de Paddle</h1><div id="msg"></div>
-<div class="card"><h2>Iniciar sesión</h2><form onsubmit="return login(event)">
-<input name="usuario" placeholder="Usuario" required><input name="clave" type="password" placeholder="Contraseña" required><button>Entrar</button></form></div>
-<div class="card"><h2>Registrarse</h2><form onsubmit="return reg(event)">
-<input name="nombre" placeholder="Nombre completo" required><input name="usuario" placeholder="Usuario" required>
-<input name="clave" type="password" placeholder="Contraseña (mín. 6)" required>
-<select name="categoria"><option>Principiante<option>Intermedio<option>Avanzado</select>
-<input name="codigo" placeholder="Código de administrador (opcional)"><button>Registrarme</button></form></div></div>`;
+const authHtml = `<main id="auth" class="auth-shell">
+  <section class="auth-intro">
+    <img class="brand-logo" src="/logo-el-club.png" alt="El Club Espinal">
+    <p class="eyebrow">Torneos de pádel</p>
+    <h1>El Club <em>Espinal</em></h1>
+    <p class="auth-copy">Consulta torneos, equipos, partidos y resultados del club desde un solo lugar.</p>
+    <div class="auth-note"><span aria-hidden="true"></span> Gestión deportiva · Espinal</div>
+  </section>
+  <section class="auth-panels" aria-label="Acceso a la plataforma">
+    <div id="auth-form" class="card auth-card"></div>
+  </section>
+</main>`;
 
-const TABS = { torneos: 'Torneos', equipos: 'Equipos', partidos: 'Partidos', tabla: 'Clasificación', jugadores: 'Jugadores' };
+function mostrarAuth(mode) {
+  authMode = mode;
+  const panel = $('#auth-form');
+  if (!panel) return;
+  panel.innerHTML = mode === 'login' ? `<h2>Iniciar sesión</h2><p class="card-description">Ingresa tus datos para continuar.</p><div id="msg" class="message" role="status" aria-live="polite"></div>
+      <form onsubmit="return login(event)">
+        <div class="field"><label for="login-user">Usuario</label><input id="login-user" name="usuario" placeholder="Tu usuario" autocomplete="username" required></div>
+        <div class="field"><label for="login-password">Contraseña</label><input id="login-password" name="clave" type="password" placeholder="Tu contraseña" autocomplete="current-password" required></div>
+        <button class="primary">Iniciar sesión</button>
+      </form>
+      <div class="auth-divider">o</div>
+      <a id="google-login" class="google-button" href="/auth/google" aria-disabled="true" onclick="if(this.getAttribute('aria-disabled')==='true')event.preventDefault()"><span class="google-mark" aria-hidden="true">G</span> Continuar con Google</a>
+      <p id="google-status" class="provider-status" role="status">Comprobando disponibilidad de Google…</p>
+      <p class="auth-footer">¿No tienes cuenta? <button class="text-link" type="button" onclick="mostrarAuth('registro')">Crear cuenta</button></p>`
+    : `<h2>Crear cuenta</h2><p class="card-description">Regístrate para participar en los torneos de El Club.</p><div id="msg" class="message" role="status" aria-live="polite"></div>
+      <form onsubmit="return reg(event)">
+        <div class="field"><label for="register-name">Nombre completo</label><input id="register-name" name="nombre" placeholder="Cómo te llamas" autocomplete="name" required></div>
+        <div class="field"><label for="register-user">Usuario</label><input id="register-user" name="usuario" placeholder="Elige un usuario" autocomplete="username" required></div>
+        <div class="field"><label for="register-email">Correo electrónico</label><input id="register-email" name="email" type="email" placeholder="tu@correo.com" autocomplete="email" required></div>
+        <div class="field"><label for="register-password">Contraseña</label><input id="register-password" name="clave" type="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password" minlength="6" required></div>
+        <div class="field"><label for="register-category">Categoría</label><select id="register-category" name="categoria"><option>Principiante</option><option>Intermedio</option><option>Avanzado</option></select></div>
+        <div class="field"><label for="register-code">Código de administrador <span>(opcional)</span></label><input id="register-code" name="codigo" placeholder="Solo para administradores" autocomplete="off"></div>
+        <button class="primary">Crear cuenta</button>
+      </form>
+      <p class="auth-footer">¿Ya tienes cuenta? <button class="text-link" type="button" onclick="mostrarAuth('login')">Iniciar sesión</button></p>`;
+  if (mode === 'login') comprobarGoogle();
+  panel.classList.remove('auth-enter');
+  void panel.offsetWidth;
+  panel.classList.add('auth-enter');
+  panel.querySelector('input')?.focus({ preventScroll: true });
+}
+
+const TABS = { torneos: 'Torneos', equipos: 'Equipos', partidos: 'Partidos', tabla: 'Clasificación', jugadores: 'Jugadores', avisos: 'Avisos', cuenta: 'Mi cuenta' };
+const heading = (title, subtitle) => `<div class="page-heading"><h2 class="page-title">${title}</h2><p class="page-subtitle">${subtitle}</p></div>`;
 function render() {
   $('#app').innerHTML = T
-    ? `<header><h1>🎾 Torneos de Paddle</h1><span>${e(N)} · ${e(R)}</span><button onclick="salir()">Cerrar sesión</button></header>
-       <nav>${Object.entries(TABS).map(([k, v]) => `<button data-t="${k}" onclick="tab('${k}')">${v}</button>`).join('')}</nav>
-       <div id="msg"></div><main id="main"></main>`
+    ? `<header class="app-header"><img class="brand-logo" src="/logo-el-club.png" alt="El Club Espinal">
+       <div class="header-right"><span class="user-pill">${e(N)} · ${e(R === 'admin' ? 'Administrador' : 'Jugador')}</span><button class="secondary" onclick="salir()">Cerrar sesión</button></div></header>
+       <div class="nav-wrap"><nav aria-label="Secciones">${Object.entries(TABS).map(([k, v]) => `<button data-t="${k}" onclick="tab('${k}')">${v}</button>`).join('')}</nav></div>
+       <div id="msg" class="message" role="status" aria-live="polite"></div><main id="main"></main>`
     : authHtml;
-  if (T) tab('torneos');
+  if (T) {
+    tab('torneos');
+    fetch('/api/config').then(r => {
+      if (!r.ok) throw new Error('No se pudo consultar la configuración de horario.');
+      return r.json();
+    }).then(config => { TIME_ZONE = config.timeZone || TIME_ZONE; })
+      .catch(x => msg(x.message));
+  } else mostrarAuth(authMode);
 }
 async function tab(n) {
   cur = n;
@@ -93,11 +255,12 @@ async function tab(n) {
 
 const selTorneo = async titulo => {
   const t = await api('torneos');
-  if (!t.length) return `<h2>${titulo}</h2><p>No hay torneos creados.</p>`;
-  return `<h2>${titulo}</h2><select id="tor" onchange="cargar()">${t.map(x => `<option value="${x.id}">${e(x.nombre)}</option>`).join('')}</select><div id="sub"></div>`;
+  if (!t.length) return `${heading(titulo, 'Consulta la actividad y los resultados de tus torneos.')}<div class="empty-state">Todavía no hay torneos. Cuando se cree el primero, aparecerá aquí.</div>`;
+  return `${heading(titulo, 'Consulta la actividad y los resultados de tus torneos.')}<select id="tor" aria-label="Seleccionar torneo" onchange="cargar()">${t.map(x => `<option value="${x.id}">${e(x.nombre)}</option>`).join('')}</select><div id="sub"></div>`;
 };
 async function cargar() {
-  const id = $('#tor').value; let h;
+  const select = $('#tor'); if (!select) return;
+  const id = select.value; let h;
   try { h = cur === 'tabla' ? await tabla(id) : await partidos(id); } catch (x) { h = `<p>${e(x.message)}</p>`; }
   $('#sub').innerHTML = h;
 }
@@ -105,41 +268,73 @@ async function partidos(id) {
   const eq = await api('equipos'); let l = [], vacio = '';
   try { l = await api('partidos/' + id); } catch (x) { vacio = `<p>${e(x.message)}</p>`; }
   const o = eq.map(x => `<option value="${x.id}">${e(x.nombre)}</option>`).join('');
-  const form = R === 'admin' ? `<form onsubmit="return f(event,'partidos')"><input type="hidden" name="torneo_id" value="${id}">
-    <input name="fecha" type="date" required><select name="equipo1">${o}</select><select name="equipo2">${o}</select><button>Programar partido</button></form>` : '';
-  return form + vacio + l.map(p => `<div class="card"><b>${e(p.e1)}</b> vs <b>${e(p.e2)}</b> · ${e(p.fecha)}<br>` +
+  const o2 = eq.map((x, i) => `<option value="${x.id}" ${i === 1 ? 'selected' : ''}>${e(x.nombre)}</option>`).join('');
+  const form = R === 'admin' ? `<section class="form-panel"><p class="section-label">Nuevo partido</p><form onsubmit="return f(event,'partidos')"><input type="hidden" name="torneo_id" value="${id}">
+    <input name="fecha" type="date" aria-label="Fecha del partido" required><input name="hora" type="time" aria-label="Hora del partido" required>
+    <input name="lugar" aria-label="Cancha o lugar" placeholder="Cancha o lugar (opcional)" maxlength="200"><select name="equipo1" aria-label="Primer equipo">${o}</select><select name="equipo2" aria-label="Segundo equipo">${o2}</select><button ${eq.length < 2 ? 'disabled' : ''}>Programar partido</button></form>${eq.length < 2 ? '<p class="meta">Crea al menos dos equipos para programar un partido.</p>' : `<p class="meta">La hora se interpreta según ${e(TIME_ZONE)}. Los cuatro jugadores recibirán un aviso en la app.</p>`}</section>` : '';
+  return form + vacio + (l.length ? l.map(p => `<div class="card match-card"><div class="match-vs">${e(p.e1)} <span class="meta">vs</span> ${e(p.e2)}</div><div class="match-info">${e(p.fecha)} · ${e(p.hora)} (${e(TIME_ZONE)}) · ${e(p.lugar || 'Lugar por confirmar')}</div>` +
     (p.ganador ? `Resultado: ${e(p.resultado)} · Ganador: ${e(p.ganador === p.equipo1 ? p.e1 : p.e2)}`
-      : R === 'admin' ? `<form onsubmit="return f(event,'partidos/${p.id}/resultado','PUT')"><input name="resultado" placeholder="Ej: 6-4 6-3" required>
-        <select name="ganador"><option value="${p.equipo1}">${e(p.e1)}<option value="${p.equipo2}">${e(p.e2)}</select><button>Guardar resultado</button></form>`
-      : 'Pendiente') + '</div>').join('');
+      : R === 'admin' ? `<form onsubmit="return f(event,'partidos/${p.id}/resultado','PUT')"><input name="resultado" aria-label="Resultado del partido" placeholder="Ej.: 6-4 6-3" required>
+        <select name="ganador" aria-label="Equipo ganador"><option value="${p.equipo1}">${e(p.e1)}</option><option value="${p.equipo2}">${e(p.e2)}</option></select><button>Guardar resultado</button></form>`
+      : 'Pendiente') + '</div>').join('') : '<div class="empty-state">Todavía no hay partidos programados para este torneo.</div>');
 }
 async function tabla(id) {
   const l = await api('clasificacion/' + id);
-  if (!l.length) return '<p>Aún no hay partidos para clasificar.</p>';
-  return `<div class="wrap"><table><tr><th>#<th>Equipo<th>PJ<th>PG<th>PP<th>Pts</tr>${l.map((x, i) =>
-    `<tr><td>${i + 1}<td>${e(x.equipo)}<td>${x.pj}<td>${x.pg}<td>${x.pp}<td><b>${x.pts}</b></tr>`).join('')}</table></div>`;
+  if (!l.length) return '<div class="empty-state">La clasificación aparecerá cuando se registren los primeros resultados.</div>';
+  return `<div class="table-wrap"><table><thead><tr><th>#</th><th>Equipo</th><th>PJ</th><th>PG</th><th>PP</th><th>Puntos</th></tr></thead><tbody>${l.map((x, i) =>
+    `<tr><td>${i + 1}</td><td><b>${e(x.equipo)}</b></td><td>${x.pj}</td><td>${x.pg}</td><td>${x.pp}</td><td><b>${x.pts}</b></td></tr>`).join('')}</tbody></table></div>`;
 }
 
 const V = {
   async torneos() {
     const l = await api('torneos');
-    return `<h2>Torneos</h2>` + (R === 'admin' ? `<form onsubmit="return f(event,'torneos')"><input name="nombre" placeholder="Nombre del torneo" required>
-      <input name="fecha_inicio" type="date" required><input name="reglas" placeholder="Reglas (opcional)"><button>Crear torneo</button></form>` : '') +
-      `<div class="grid">${l.map(t => `<div class="card"><b>${e(t.nombre)}</b><br>Inicio: ${e(t.fecha_inicio)}<br><small>${e(t.reglas)}</small></div>`).join('') || '<p>No hay torneos.</p>'}</div>`;
+    return `${heading('Torneos', 'Encuentra las fechas y los detalles de cada competencia.')}` +
+      (R === 'admin' ? `<section class="form-panel"><p class="section-label">Crear torneo</p><form onsubmit="return f(event,'torneos')"><input name="nombre" aria-label="Nombre del torneo" placeholder="Nombre del torneo" required>
+      <input name="fecha_inicio" type="date" aria-label="Fecha de inicio" required><input name="reglas" aria-label="Reglas opcionales" placeholder="Reglas (opcional)"><button>Crear torneo</button></form></section>` : '') +
+      `<div class="grid">${l.map(t => `<article class="card tournament-card"><strong>${e(t.nombre)}</strong><div class="meta">Inicio · ${e(t.fecha_inicio)}</div>${t.reglas ? `<div class="meta">${e(t.reglas)}</div>` : ''}</article>`).join('') || '<div class="empty-state">Aún no hay torneos. El administrador puede crear el primero.</div>'}</div>`;
   },
   async equipos() {
     const [l, j] = await Promise.all([api('equipos'), api('jugadores')]);
     const o = j.map(x => `<option value="${x.id}">${e(x.nombre)} (${e(x.categoria)})</option>`).join('');
-    return `<h2>Equipos</h2>` + (R === 'admin' ? `<form onsubmit="return f(event,'equipos')"><input name="nombre" placeholder="Nombre del equipo" required>
-      <select name="jugador1">${o}</select><select name="jugador2">${o}</select><button>Crear equipo</button></form>` : '') +
-      `<div class="wrap"><table><tr><th>Equipo<th>Jugadores</tr>${l.map(x => `<tr><td>${e(x.nombre)}<td>${e(x.n1)} y ${e(x.n2)}</tr>`).join('')}</table></div>`;
+    const o2 = j.map((x, i) => `<option value="${x.id}" ${i === 1 ? 'selected' : ''}>${e(x.nombre)} (${e(x.categoria)})</option>`).join('');
+    return `${heading('Equipos', 'Conoce las parejas que compiten en el club.')}` +
+      (R === 'admin' ? `<section class="form-panel"><p class="section-label">Armar equipo</p><form onsubmit="return f(event,'equipos')"><input name="nombre" aria-label="Nombre del equipo" placeholder="Nombre del equipo" required>
+      <select name="jugador1" aria-label="Primer jugador" required>${o}</select><select name="jugador2" aria-label="Segundo jugador" required>${o2}</select><button ${j.length < 2 ? 'disabled' : ''}>Crear equipo</button></form>${j.length < 2 ? '<p class="meta">Necesitas al menos dos jugadores registrados para armar un equipo.</p>' : ''}</section>` : '') +
+      (l.length ? `<div class="table-wrap"><table><thead><tr><th>Equipo</th><th>Jugadores</th></tr></thead><tbody>${l.map(x => `<tr><td><b>${e(x.nombre)}</b></td><td>${e(x.n1)} y ${e(x.n2)}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty-state">Todavía no hay equipos registrados.</div>');
   },
   partidos: () => selTorneo('Partidos'),
   tabla: () => selTorneo('Clasificación'),
   async jugadores() {
     const l = await api('jugadores');
-    return `<h2>Jugadores</h2><div class="wrap"><table><tr><th>Nombre<th>Categoría</tr>${l.map(x => `<tr><td>${e(x.nombre)}<td>${e(x.categoria)}</tr>`).join('')}</table></div>`;
+    return `${heading('Jugadores', 'Los participantes que hacen crecer cada torneo.')}` +
+      (l.length ? `<div class="table-wrap"><table><thead><tr><th>Nombre</th><th>Categoría</th></tr></thead><tbody>${l.map(x => `<tr><td><b>${e(x.nombre)}</b></td><td>${e(x.categoria)}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty-state">Todavía no hay jugadores registrados.</div>');
+  },
+  async avisos() {
+    const l = await api('notificaciones');
+    return `${heading('Avisos', 'Recibe aquí la fecha, la hora y los detalles de tus partidos.')}` +
+      (l.length ? l.map(n => `<article class="card notification-card ${n.leida ? '' : 'unread'}"><h3>${e(n.titulo)}</h3><p>${e(n.mensaje)}</p><time>${e(n.creada_en)}</time>${n.leida ? '<p class="meta">Leído</p>' : `<button class="primary" onclick="marcarLeida(${Number(n.id)})">Marcar como leído</button>`}</article>`).join('') :
+        '<div class="empty-state">Todavía no tienes avisos. Cuando programen un partido para tus equipos, aparecerá aquí.</div>');
+  },
+  async cuenta() {
+    const account = await api('cuenta');
+    return `${heading('Mi cuenta', 'Mantén actualizado tu correo para recibir los avisos de tus partidos.')}` +
+      `<section class="form-panel"><p class="section-label">Datos de contacto</p><p class="meta">Cuenta: ${e(account.nombre)} · ${e(account.rol === 'admin' ? 'Administrador' : 'Jugador')}</p>
+       <form onsubmit="return f(event,'cuenta/email','PUT')"><input name="email" type="email" aria-label="Correo electrónico" placeholder="tu@correo.com" value="${e(account.email || '')}" required>
+       <button>Guardar correo</button></form><p class="meta">Al programar un partido, se enviará el detalle a los cuatro jugadores por correo y también aparecerá en Avisos.</p></section>`;
   }
 };
 render();
+const googleError = new URLSearchParams(location.search).get('google');
+if (googleError) {
+  const messages = {
+    'not-configured': 'El acceso con Google aún no está configurado en el servidor.',
+    cancelled: 'Se canceló el acceso con Google.',
+    'invalid-state': 'La sesión de Google expiró o no es válida. Inténtalo de nuevo.',
+    'unverified-email': 'Google no confirmó un correo verificado para esta cuenta.',
+    'account-conflict': 'Ese correo ya está vinculado a otra cuenta de Google.',
+    failed: 'No se pudo iniciar sesión con Google. Inténtalo de nuevo.'
+  };
+  msg(messages[googleError] || messages.failed, false);
+  history.replaceState(null, '', location.pathname);
+}
 </script></body></html>
