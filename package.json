@@ -15,7 +15,8 @@
     "express": "^4.19.2",
     "google-auth-library": "^11.3.1",
     "jsonwebtoken": "^9.0.2",
-    "nodemailer": "^10.2.1"
+    "nodemailer": "^10.2.1",
+    "pg": "^8.23.1"
   },
   "allowScripts": {
     "better-sqlite3@12.11.1": true

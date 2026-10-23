@@ -15,5 +15,5 @@ services:
         sync: false
       - key: APP_TIMEZONE
         value: America/Bogota
-      - key: DB_PATH
-        value: /opt/render/project/src/paddle.db
+      - key: DATABASE_URL
+        sync: false

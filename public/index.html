@@ -84,6 +84,11 @@ main{width:min(1120px,100%);margin:auto;padding:clamp(1.25rem,4vw,2.75rem) 1rem 
 .message{margin:.75rem auto;width:min(1120px,calc(100% - 2rem));font-size:.9rem;font-weight:650}
 #auth .message{width:100%;margin:.4rem 0;padding:0}
 .ok{color:var(--primary)}.bad{color:var(--danger)}.warn{color:#8a6100}
+.danger{min-height:2.5rem;margin:.25rem;padding:.55rem .8rem;border:1px solid #e6c4c0;border-radius:9px;background:#fff;color:var(--danger);font-weight:700}
+.danger:hover{background:#fff4f2}
+.tournament-card .primary{margin-top:.8rem}
+td form{min-width:220px;margin:.25rem 0}
+td form input,td form select{margin:.2rem 0}
 .table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:14px;background:var(--surface)}
 table{width:100%;border-collapse:collapse;text-align:left}
 th,td{padding:.85rem 1rem;border-bottom:1px solid var(--border);white-space:nowrap}
@@ -163,16 +168,29 @@ async function comprobarGoogle() {
     if (!r.ok) throw new Error('No se pudo consultar la configuración de acceso.');
     const config = await r.json();
     TIME_ZONE = config.timeZone || TIME_ZONE;
-    link.setAttribute('aria-disabled', config.googleEnabled ? 'false' : 'true');
-    link.tabIndex = config.googleEnabled ? 0 : -1;
-    status.textContent = config.googleEnabled ? ''
-      : `Google OAuth no está listo. Revisa ${config.googleConfigMissing.join(', ') || 'la configuración del servidor'}.${
-        config.googleRedirectUri ? ` URI autorizada en Google: ${config.googleRedirectUri}` : ''
-      }`;
-    status.hidden = config.googleEnabled;
+    if (link && status) {
+      link.setAttribute('aria-disabled', config.googleEnabled ? 'false' : 'true');
+      link.tabIndex = config.googleEnabled ? 0 : -1;
+      status.textContent = config.googleEnabled ? ''
+        : `Google OAuth no está listo. Revisa ${config.googleConfigMissing.join(', ') || 'la configuración del servidor'}.${
+          config.googleRedirectUri ? ` URI autorizada en Google: ${config.googleRedirectUri}` : ''
+        }`;
+      status.hidden = config.googleEnabled;
+    }
+    const registerButton = $('#register-submit'), storageStatus = $('#storage-status');
+    if (registerButton) registerButton.disabled = !config.registrationEnabled;
+    if (storageStatus) storageStatus.hidden = config.registrationEnabled;
   } catch (x) {
-    link.setAttribute('aria-disabled', 'true'); link.tabIndex = -1;
-    status.textContent = x.message; status.hidden = false;
+    if (link && status) {
+      link.setAttribute('aria-disabled', 'true'); link.tabIndex = -1;
+      status.textContent = x.message; status.hidden = false;
+    }
+    const registerButton = $('#register-submit'), storageStatus = $('#storage-status');
+    if (registerButton) registerButton.disabled = true;
+    if (storageStatus) {
+      storageStatus.textContent = x.message;
+      storageStatus.hidden = false;
+    }
   }
 }
 // envío genérico de formularios del panel
@@ -184,6 +202,26 @@ async function f(ev, ruta, m = 'POST') {
     msg(r.warning ? `${r.ok} ${r.warning}` : r.ok, r.warning ? 'warn' : true);
   } catch (x) { msg(x.message); }
   return false;
+}
+async function eliminar(ev, ruta, tipo) {
+  ev.preventDefault();
+  const detalle = tipo === 'jugador'
+    ? ' También se eliminarán sus equipos sin partidos; la cuenta de acceso se conservará.'
+    : ' Si tiene partidos registrados, no se permitirá eliminarlo.';
+  if (!confirm(`¿Eliminar este ${tipo}? Esta acción no se puede deshacer.${detalle}`)) return false;
+  try {
+    const r = await api(ruta, 'DELETE');
+    await tab(cur);
+    msg(r.ok, true);
+  } catch (x) { msg(x.message); }
+  return false;
+}
+async function inscribirse(id) {
+  try {
+    const r = await api(`torneos/${id}/inscripciones`, 'POST', {});
+    await tab('torneos');
+    msg(r.warning ? `${r.ok} ${r.warning}` : r.ok, r.warning ? 'warn' : true);
+  } catch (x) { msg(x.message); }
 }
 
 const authHtml = `<main id="auth" class="auth-shell">
@@ -221,10 +259,11 @@ function mostrarAuth(mode) {
         <div class="field"><label for="register-password">Contraseña</label><input id="register-password" name="clave" type="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password" minlength="6" required></div>
         <div class="field"><label for="register-category">Categoría</label><select id="register-category" name="categoria"><option>Principiante</option><option>Intermedio</option><option>Avanzado</option></select></div>
         <div class="field"><label for="register-code">Código de administrador <span>(opcional)</span></label><input id="register-code" name="codigo" placeholder="Solo para administradores" autocomplete="off"></div>
-        <button class="primary">Crear cuenta</button>
+        <button id="register-submit" class="primary">Crear cuenta</button>
       </form>
+      <p id="storage-status" class="provider-status" role="status" hidden>El servidor debe conectar PostgreSQL para guardar las cuentas de forma permanente.</p>
       <p class="auth-footer">¿Ya tienes cuenta? <button class="text-link" type="button" onclick="mostrarAuth('login')">Iniciar sesión</button></p>`;
-  if (mode === 'login') comprobarGoogle();
+  comprobarGoogle();
   panel.classList.remove('auth-enter');
   void panel.offsetWidth;
   panel.classList.add('auth-enter');
@@ -291,26 +330,49 @@ async function tabla(id) {
 const V = {
   async torneos() {
     const l = await api('torneos');
+    const inscritos = R === 'admin' ? await api('inscripciones') : [];
+    const mias = R === 'jugador' ? await api('inscripciones/mias') : [];
+    const inscritosIds = new Set(mias.map(i => String(i.torneo_id)));
     return `${heading('Torneos', 'Encuentra las fechas y los detalles de cada competencia.')}` +
       (R === 'admin' ? `<section class="form-panel"><p class="section-label">Crear torneo</p><form onsubmit="return f(event,'torneos')"><input name="nombre" aria-label="Nombre del torneo" placeholder="Nombre del torneo" required>
       <input name="fecha_inicio" type="date" aria-label="Fecha de inicio" required><input name="reglas" aria-label="Reglas opcionales" placeholder="Reglas (opcional)"><button>Crear torneo</button></form></section>` : '') +
-      `<div class="grid">${l.map(t => `<article class="card tournament-card"><strong>${e(t.nombre)}</strong><div class="meta">Inicio · ${e(t.fecha_inicio)}</div>${t.reglas ? `<div class="meta">${e(t.reglas)}</div>` : ''}</article>`).join('') || '<div class="empty-state">Aún no hay torneos. El administrador puede crear el primero.</div>'}</div>`;
+      `<div class="grid">${l.map(t => {
+        const lista = inscritos.filter(i => String(i.torneo_id) === String(t.id));
+        const yaInscrito = inscritosIds.has(String(t.id));
+        return `<article class="card tournament-card"><strong>${e(t.nombre)}</strong><div class="meta">Inicio · ${e(t.fecha_inicio)}</div><div class="meta">Reglas · ${e(t.reglas || 'No se especificaron reglas.')}</div>` +
+          (R === 'jugador' ? yaInscrito
+            ? '<p class="ok">Ya estás inscrito.</p>'
+            : `<button class="primary" type="button" onclick="inscribirse(${Number(t.id)})">Inscribirme</button>`
+            : R === 'admin' ? `<details class="meta"><summary>Inscritos (${lista.length})</summary>${lista.length
+              ? `<ul>${lista.map(i => `<li>${e(i.nombre)} · ${e(i.categoria)}</li>`).join('')}</ul>`
+              : '<p>Aún no hay jugadores inscritos.</p>'}</details>` : '') +
+          '</article>';
+      }).join('') || '<div class="empty-state">Aún no hay torneos. El administrador puede crear el primero.</div>'}</div>`;
   },
   async equipos() {
     const [l, j] = await Promise.all([api('equipos'), api('jugadores')]);
-    const o = j.map(x => `<option value="${x.id}">${e(x.nombre)} (${e(x.categoria)})</option>`).join('');
-    const o2 = j.map((x, i) => `<option value="${x.id}" ${i === 1 ? 'selected' : ''}>${e(x.nombre)} (${e(x.categoria)})</option>`).join('');
+    const asignados = new Set(l.flatMap(x => [String(x.jugador1), String(x.jugador2)]));
+    const disponibles = j.filter(x => !asignados.has(String(x.id)));
+    const o = disponibles.map(x => `<option value="${x.id}">${e(x.nombre)} (${e(x.categoria)})</option>`).join('');
+    const o2 = disponibles.map((x, i) => `<option value="${x.id}" ${i === 1 ? 'selected' : ''}>${e(x.nombre)} (${e(x.categoria)})</option>`).join('');
     return `${heading('Equipos', 'Conoce las parejas que compiten en el club.')}` +
       (R === 'admin' ? `<section class="form-panel"><p class="section-label">Armar equipo</p><form onsubmit="return f(event,'equipos')"><input name="nombre" aria-label="Nombre del equipo" placeholder="Nombre del equipo" required>
-      <select name="jugador1" aria-label="Primer jugador" required>${o}</select><select name="jugador2" aria-label="Segundo jugador" required>${o2}</select><button ${j.length < 2 ? 'disabled' : ''}>Crear equipo</button></form>${j.length < 2 ? '<p class="meta">Necesitas al menos dos jugadores registrados para armar un equipo.</p>' : ''}</section>` : '') +
-      (l.length ? `<div class="table-wrap"><table><thead><tr><th>Equipo</th><th>Jugadores</th></tr></thead><tbody>${l.map(x => `<tr><td><b>${e(x.nombre)}</b></td><td>${e(x.n1)} y ${e(x.n2)}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty-state">Todavía no hay equipos registrados.</div>');
+      <select name="jugador1" aria-label="Primer jugador" required>${o}</select><select name="jugador2" aria-label="Segundo jugador" required>${o2}</select><button ${disponibles.length < 2 ? 'disabled' : ''}>Crear equipo</button></form>${disponibles.length < 2 ? '<p class="meta">Necesitas dos jugadores sin equipo para crear una pareja.</p>' : ''}</section>` : '') +
+      (l.length ? `<div class="table-wrap"><table><thead><tr><th>Equipo</th><th>Jugadores</th>${R === 'admin' ? '<th>Acciones</th>' : ''}</tr></thead><tbody>${l.map(x => {
+        const ocupados = new Set(l.filter(y => String(y.id) !== String(x.id)).flatMap(y => [String(y.jugador1), String(y.jugador2)]));
+        const opciones = actual => j.filter(p => !ocupados.has(String(p.id)) || String(p.id) === String(actual))
+          .map(p => `<option value="${p.id}" ${String(p.id) === String(actual) ? 'selected' : ''}>${e(p.nombre)} (${e(p.categoria)})</option>`).join('');
+        return `<tr><td>${R === 'admin' ? `<form onsubmit="return f(event,'equipos/${x.id}','PUT')"><input name="nombre" aria-label="Nombre del equipo" value="${e(x.nombre)}" maxlength="120" required><select name="jugador1" aria-label="Primer jugador">${opciones(x.jugador1)}</select><select name="jugador2" aria-label="Segundo jugador">${opciones(x.jugador2)}</select><button class="primary" type="submit">Guardar equipo</button></form>` : `<b>${e(x.nombre)}</b>`}</td><td>${e(x.n1)} y ${e(x.n2)}</td>${R === 'admin' ? `<td><button class="danger" type="button" onclick="eliminar(event,'equipos/${x.id}','equipo')">Eliminar</button></td>` : ''}</tr>`;
+      }).join('')}</tbody></table></div>` : '<div class="empty-state">Todavía no hay equipos registrados.</div>');
   },
   partidos: () => selTorneo('Partidos'),
   tabla: () => selTorneo('Clasificación'),
   async jugadores() {
     const l = await api('jugadores');
     return `${heading('Jugadores', 'Los participantes que hacen crecer cada torneo.')}` +
-      (l.length ? `<div class="table-wrap"><table><thead><tr><th>Nombre</th><th>Categoría</th></tr></thead><tbody>${l.map(x => `<tr><td><b>${e(x.nombre)}</b></td><td>${e(x.categoria)}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty-state">Todavía no hay jugadores registrados.</div>');
+      (l.length ? `<div class="table-wrap"><table><thead><tr><th>Nombre</th><th>Categoría</th>${R === 'admin' ? '<th>Acciones</th>' : ''}</tr></thead><tbody>${l.map(x => `<tr>${R === 'admin'
+        ? `<td colspan="2"><form onsubmit="return f(event,'jugadores/${x.id}','PUT')"><input name="nombre" aria-label="Nombre del jugador" value="${e(x.nombre)}" maxlength="120" required><input name="categoria" aria-label="Categoría" value="${e(x.categoria)}" maxlength="60" required><button class="primary" type="submit">Guardar jugador</button></form></td><td><button class="danger" type="button" onclick="eliminar(event,'jugadores/${x.id}','jugador')">Eliminar</button></td>`
+        : `<td><b>${e(x.nombre)}</b></td><td>${e(x.categoria)}</td>`}</tr>`).join('')}</tbody></table></div>` : '<div class="empty-state">Todavía no hay jugadores registrados.</div>');
   },
   async avisos() {
     const l = await api('notificaciones');
@@ -331,6 +393,7 @@ const googleError = new URLSearchParams(location.search).get('google');
 if (googleError) {
   const messages = {
     'not-configured': 'El acceso con Google aún no está configurado en el servidor.',
+    'database-not-configured': 'El administrador debe conectar PostgreSQL en Render antes de habilitar el registro y el acceso con Google.',
     cancelled: 'Se canceló el acceso con Google.',
     'google-denied': 'Google rechazó la solicitud. Revisa los registros de OAuth en Google Cloud Console.',
     'invalid-state': 'La sesión de Google expiró o no es válida. Inténtalo de nuevo.',
@@ -352,9 +415,9 @@ if (googleError) {
   };
   const stage = new URLSearchParams(location.search).get('stage');
   const reason = new URLSearchParams(location.search).get('reason');
-  const errorMessage = messages[googleError] || (stageMessages[stage]
+  const errorMessage = googleError === 'failed' && stageMessages[stage]
     ? `${stageMessages[stage]} ${reasonMessages[reason] || 'Consulta los registros del servicio en Render para ver la etapa y el código del error.'}`
-    : messages.failed);
+    : messages[googleError] || messages.failed;
   msg(errorMessage, false);
   history.replaceState(null, '', location.pathname);
 }
