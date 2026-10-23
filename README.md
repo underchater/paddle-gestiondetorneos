@@ -9,8 +9,18 @@ Web (HTML/CSS/JS) + Node.js/Express + SQLite (SQL). Sin CMS. Autenticación prop
 Variables de entorno: `JWT_SECRET`, `ADMIN_CODE` (código para registrar administradores, por defecto `PADDLE2025`), `DB_PATH`.
 
 ## Git (todos deben hacer commits)
-    git init && git add . && git commit -m "Proyecto inicial"
-    git remote add origin <URL> && git push -u origin main
+Cada integrante debe clonar el repositorio:
+
+    git clone https://github.com/underchater/paddle-gestiondetorneos.git
+    cd paddle-gestiondetorneos
+
+Después de realizar sus cambios, cada integrante debe crear y subir sus propios commits:
+
+    git add .
+    git commit -m "Descripción del cambio"
+    git push
+
+El repositorio es público y cualquiera puede clonarlo; para subir commits directamente, cada integrante debe tener acceso de escritura como colaborador.
 
 ## Despliegue (Render)
 Crear "Web Service" desde el repo: Build `npm install`, Start `npm start`, y definir `JWT_SECRET` y `ADMIN_CODE`.
