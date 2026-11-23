@@ -39,7 +39,11 @@ test.before(async () => {
       DB_PATH: dbPath,
       JWT_SECRET: 'clave-de-prueba',
       ADMIN_CODE: 'PADDLE2025',
-      APP_TIMEZONE: 'America/Bogota'
+      APP_TIMEZONE: 'America/Bogota',
+      SMTP_HOST: '',
+      SMTP_PORT: '',
+      SMTP_USER: '',
+      SMTP_PASS: ''
     },
     stdio: 'ignore'
   });
@@ -126,6 +130,22 @@ test('crea torneo, equipos y partido, registra resultado y calcula clasificació
   const tournaments = await request('/api/torneos', { headers: authAdmin });
   assert.equal(tournaments.response.ok, true);
   const tournamentId = tournaments.body.find(item => item.nombre === 'Torneo API').id;
+
+  const inscription = await request(`/api/torneos/${tournamentId}/inscripciones`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${playerToken}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({})
+  });
+  assert.equal(inscription.response.status, 201);
+  assert.equal(inscription.body.ok, 'Inscripción guardada.');
+  assert.match(inscription.body.warning, /correo del servidor no está configurado/);
+  const myInscription = await request('/api/inscripciones/mias', {
+    headers: { Authorization: `Bearer ${playerToken}` }
+  });
+  assert.equal(myInscription.body.some(item => String(item.torneo_id) === String(tournamentId)), true);
 
   const players = await request('/api/jugadores', { headers: authAdmin });
   assert.equal(players.body.length >= 2, true);

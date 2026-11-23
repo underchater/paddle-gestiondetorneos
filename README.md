@@ -116,7 +116,7 @@ https://paddle-gestiondetorneos.onrender.com/auth/google/callback
 
 ## SMTP
 
-Cuando SMTP no está configurado, las acciones continúan y los avisos quedan disponibles dentro de la aplicación. El correo de inscripción y las notificaciones por correo solo se habilitan con la configuración SMTP completa.
+Cuando SMTP no está configurado, las inscripciones a torneos se guardan y la aplicación advierte que no pudo enviar la ficha por correo. Los avisos de partidos quedan disponibles dentro de la aplicación; el correo solo se habilita con la configuración SMTP completa.
 
 ## Pruebas
 

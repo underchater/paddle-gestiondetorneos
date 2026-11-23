@@ -300,13 +300,11 @@ app.post('/api/torneos', auth, admin, wrap(async (q, s) => {
 }));
 app.post('/api/torneos/:id/inscripciones', auth, wrap(async (q, s) => {
   if (q.u.rol !== 'jugador') err('Solo las cuentas de jugador pueden inscribirse.');
-  if (!mailer) return s.status(503).json({ error: 'La inscripción requiere que el administrador configure el envío de correo (SMTP).' });
   const torneo = await db.prepare('SELECT nombre,fecha_inicio,reglas FROM torneos WHERE id=?').get(q.params.id);
   if (!torneo) err('Torneo no encontrado.');
   const jugador = await db.prepare(`SELECT j.id,j.nombre,u.email FROM jugadores j
     JOIN usuarios u ON u.id=j.usuario_id WHERE j.usuario_id=?`).get(q.u.id);
   if (!jugador) err('No se encontró un perfil de jugador asociado a tu cuenta.');
-  if (!jugador.email) err('Agrega tu correo en Mi cuenta antes de inscribirte.');
   const registration = await db.transaction(async tx => {
     const exists = await tx.prepare('SELECT id FROM torneo_inscripciones WHERE torneo_id=? AND jugador_id=?')
       .get(q.params.id, jugador.id);
@@ -314,6 +312,15 @@ app.post('/api/torneos/:id/inscripciones', auth, wrap(async (q, s) => {
     return tx.prepare('INSERT INTO torneo_inscripciones(torneo_id,jugador_id) VALUES(?,?) RETURNING id')
       .get(q.params.id, jugador.id);
   })();
+  if (!mailer || !jugador.email) {
+    return s.status(201).json({
+      ok: 'Inscripción guardada.',
+      id: registration.id,
+      warning: !mailer
+        ? 'No se pudo enviar la ficha porque el correo del servidor no está configurado. Tu inscripción sí quedó registrada.'
+        : 'No se pudo enviar la ficha porque tu cuenta no tiene un correo registrado. Tu inscripción sí quedó registrada.'
+    });
+  }
   try {
     await mailer.sendMail({
       from: process.env.SMTP_FROM || process.env.SMTP_USER,
