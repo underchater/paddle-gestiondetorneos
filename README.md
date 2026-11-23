@@ -154,4 +154,3 @@ node --check database.js
 
 - [Arquitectura](docs/ARCHITECTURA.md)
 - [Wiki del proyecto](docs/WIKI.md)
-- [Diapositivas](docs/DIAPOSITIVAS.md)

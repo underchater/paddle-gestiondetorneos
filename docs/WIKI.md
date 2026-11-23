@@ -61,4 +61,3 @@ Las pruebas automatizadas cubren los principales flujos de API con una base SQLi
 
 - [Guía de instalación](../README.md)
 - [Arquitectura](ARCHITECTURA.md)
-- [Diapositivas](DIAPOSITIVAS.md)
