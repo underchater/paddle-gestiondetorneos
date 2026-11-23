@@ -1,3 +1,9 @@
+databases:
+  - name: paddle-postgres
+    plan: free
+    databaseName: paddle
+    user: paddle
+
 services:
   - type: web
     name: paddle-gestiondetorneos
@@ -16,4 +22,6 @@ services:
       - key: APP_TIMEZONE
         value: America/Bogota
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: paddle-postgres
+          property: connectionString

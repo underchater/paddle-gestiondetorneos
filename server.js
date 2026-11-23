@@ -4,6 +4,10 @@ const express = require('express'),
 const { db, initializeDatabase, isPostgres } = require('./database');
 const SECRET = process.env.JWT_SECRET || 'cambia-este-secreto';
 const ADMIN_CODE = process.env.ADMIN_CODE || 'PADDLE2025';
+if (process.env.NODE_ENV === 'production' && (!process.env.JWT_SECRET || !process.env.ADMIN_CODE)) {
+  console.error('Configuración inválida: JWT_SECRET y ADMIN_CODE son obligatorios en producción.');
+  process.exit(1);
+}
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI ||
