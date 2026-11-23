@@ -1,5 +1,10 @@
 # Paddle Torneos
 
+## Entregables
+
+- Aplicación desplegada: https://paddle-gestiondetorneos.onrender.com
+- Repositorio GitHub: https://github.com/underchater/paddle-gestiondetorneos
+
 Aplicación web para administrar torneos de pádel del Club El Club Espinal. Permite gestionar cuentas, jugadores, equipos, torneos, partidos, resultados, clasificación y avisos.
 
 ## Funciones
