@@ -108,6 +108,12 @@ El archivo `render.yaml` contiene la definición base del servicio.
 3. Añade como URI de redirección la URL pública más `/auth/google/callback`.
 4. Configura `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` y `GOOGLE_REDIRECT_URI`.
 
+El ID y el secreto deben pertenecer al mismo cliente OAuth de Google. Después de cambiar el secreto, reinicia el Web Service y confirma en Google Cloud Console que esta URI autorizada aparece exactamente:
+
+```text
+https://paddle-gestiondetorneos.onrender.com/auth/google/callback
+```
+
 ## SMTP
 
 Cuando SMTP no está configurado, las acciones continúan y los avisos quedan disponibles dentro de la aplicación. El correo de inscripción y las notificaciones por correo solo se habilitan con la configuración SMTP completa.

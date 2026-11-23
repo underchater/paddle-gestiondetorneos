@@ -8,9 +8,10 @@ if (process.env.NODE_ENV === 'production' && (!process.env.JWT_SECRET || !proces
   console.error('Configuración inválida: JWT_SECRET y ADMIN_CODE son obligatorios en producción.');
   process.exit(1);
 }
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
-const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI ||
+const cleanEnv = value => String(value || '').trim().replace(/^['"]|['"]$/g, '').trim();
+const GOOGLE_CLIENT_ID = cleanEnv(process.env.GOOGLE_CLIENT_ID);
+const GOOGLE_CLIENT_SECRET = cleanEnv(process.env.GOOGLE_CLIENT_SECRET);
+const GOOGLE_REDIRECT_URI = cleanEnv(process.env.GOOGLE_REDIRECT_URI || process.env.CALLBACK_URL) ||
   (process.env.RENDER_EXTERNAL_URL
     ? new URL('/auth/google/callback', process.env.RENDER_EXTERNAL_URL).toString()
     : undefined);
